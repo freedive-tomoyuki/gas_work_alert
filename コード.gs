@@ -1,3 +1,51 @@
+function isBusinessDay(date){
+ if (date.getDay() == 0 || date.getDay() == 6) {
+    return false;
+  }
+  var calJa = CalendarApp.getCalendarById('ja.japanese#holiday@group.v.calendar.google.com');
+  if(calJa.getEventsForDay(date).length > 0){
+    return false;
+  }
+  return true;
+}
+function isMyBusinessDay(date){
+ //var date = new Date();
+ var myCals = CalendarApp.getCalendarById('sp@freedive.co.jp');//特定のIDのカレンダーを取得
+  var myEvents = myCals.getEventsForDay(date);//カレンダーの本日のイベントを取得
+  var arrTitles =[];
+
+  /* イベントの数だけ繰り返し */
+  for(var i=0;i<myEvents.length;i++){
+    eventTitle = myEvents[i].getTitle();
+    if(eventTitle.indexOf('出勤') != -1){
+      arrTitles.push(eventTitle.replace('出勤','').trim()); //イベントのタイトルを配列に追加
+      //console.log(eventTitle.replace('出勤','').trim());
+    }
+    
+  }
+  
+  /* 出勤の判定 */
+  arrTitles.forEach(function(arrTitle){
+    console.log(arrTitle);
+    var name = SpreadsheetApp.getActive().getName();
+    if(name.indexOf(arrTitle) != -1){
+      return true;
+    }else{
+      return false;
+    }    
+    
+  });
+}
+function onOpen(){
+ 
+  //メニュー配列
+  var myMenu=[
+    {name: "本日の勤怠チェック", functionName: "myFunction"}
+  ];
+ 
+  SpreadsheetApp.getActiveSpreadsheet().addMenu("チェック",myMenu); //メニューを追加
+ 
+}
 function myFunction() {//選択する関数
   //本日の日付取得
     //var mySheet = SpreadsheetApp.getActiveSheet();
@@ -5,9 +53,13 @@ function myFunction() {//選択する関数
     var d = date.getDate();
     var m = date.getMonth();
   
+  if(isBusinessDay(date)){//社員用判定
+    //console.log(m);
+  
     var mySheet = SpreadsheetApp.getActive().getSheetByName('回答のシート1');
     var mySheetName = SpreadsheetApp.getActive().getName();
   
+   //Browser.msgBox(d);
   //A列での該当の日付取得と朝礼
   var lastRow = mySheet.getLastRow();
   var flag = 0;
@@ -51,7 +103,7 @@ function myFunction() {//選択する関数
         chatBot('出勤/退社',mySheetName);
         break;
   }
-
+ }
   //月から金の場合　ｘ　その日の出勤と退勤打刻
  
 }
